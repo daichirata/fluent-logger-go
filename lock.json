@@ -1,0 +1,118 @@
+{
+    "memo": "8ce82c0464ea05e2c85d9ff6f4e5af62adc2bf14e8fa94e87b89ed38e492ea89",
+    "projects": [
+        {
+            "name": "github.com/cenk/backoff",
+            "version": "v1.0.0",
+            "revision": "32cd0c5b3aef12c76ed64aaf678f6c79736be7dc",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/davecgh/go-spew",
+            "version": "v1.1.0",
+            "revision": "346938d642f2ec3594ed81d874461961cd0faa76",
+            "packages": [
+                "spew"
+            ]
+        },
+        {
+            "name": "github.com/facebookgo/clock",
+            "branch": "master",
+            "revision": "600d898af40aa09a7a93ecb9265d87b0504b6f03",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/fluent/fluent-logger-golang",
+            "version": "v1.2.1",
+            "revision": "28bdb662295c1b7aca09c1a4edbf9430010775a9",
+            "packages": [
+                "fluent"
+            ]
+        },
+        {
+            "name": "github.com/golang/protobuf",
+            "branch": "master",
+            "revision": "c9c7427a2a70d2eb3bafa0ab2dc163e45f143317",
+            "packages": [
+                "proto"
+            ]
+        },
+        {
+            "name": "github.com/philhofer/fwd",
+            "branch": "master",
+            "revision": "98c11a7a6ec829d672b03833c3d69a7fae1ca972",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/pmezard/go-difflib",
+            "version": "v1.0.0",
+            "revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+            "packages": [
+                "difflib"
+            ]
+        },
+        {
+            "name": "github.com/rubyist/circuitbreaker",
+            "version": "v2.2.0",
+            "revision": "7e3e7fbe9c62b943d487af023566a79d9eb22d3b",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/stretchr/testify",
+            "version": "v1.1.4",
+            "revision": "69483b4bd14f5845b5a1e55bca19e954e827f1d0",
+            "packages": [
+                "assert"
+            ]
+        },
+        {
+            "name": "github.com/tinylib/msgp",
+            "version": "v1.0",
+            "revision": "38a6f61a768dc24552dad94611923841b53acc4f",
+            "packages": [
+                "msgp"
+            ]
+        },
+        {
+            "name": "golang.org/x/net",
+            "branch": "master",
+            "revision": "a6577fac2d73be281a500b310739095313165611",
+            "packages": [
+                "context"
+            ]
+        },
+        {
+            "name": "google.golang.org/appengine",
+            "version": "v1.0.0",
+            "revision": "150dc57a1b433e64154302bdc40b6bb8aefa313a",
+            "packages": [
+                ".",
+                "datastore",
+                "internal",
+                "internal/app_identity",
+                "internal/base",
+                "internal/datastore",
+                "internal/log",
+                "internal/modules",
+                "internal/remote_api"
+            ]
+        },
+        {
+            "name": "gopkg.in/vmihailenco/msgpack.v2",
+            "version": "v2.8.3",
+            "revision": "a1382b1ce0c749733b814157c245e02cc1f41076",
+            "packages": [
+                ".",
+                "codes"
+            ]
+        }
+    ]
+}
