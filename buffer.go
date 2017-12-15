@@ -5,9 +5,10 @@ import (
 )
 
 type buffer struct {
-	buf   []*Message
-	mu    sync.Mutex
-	Dirty chan struct{}
+	new     []*Message
+	pending []*Message
+	mu      sync.Mutex
+	Dirty   chan struct{}
 }
 
 func newBuffer() buffer {
@@ -20,28 +21,34 @@ func (buffer *buffer) Add(message *Message) {
 	buffer.mu.Lock()
 	defer buffer.mu.Unlock()
 
-	buffer.buf = append(buffer.buf, message)
-	go func() {
-		buffer.Dirty <- struct{}{}
-	}()
+	buffer.new = append(buffer.new, message)
+	if len(buffer.new) == 1 {
+		go func() {
+			buffer.Dirty <- struct{}{}
+		}()
+	}
 }
 
 func (buffer *buffer) Remove() []*Message {
 	buffer.mu.Lock()
 	defer buffer.mu.Unlock()
 
-	if len(buffer.buf) == 0 {
+	if len(buffer.new) == 0 && len(buffer.pending) == 0 {
 		return nil
 	}
 
-	m := buffer.buf
-	buffer.buf = buffer.buf[:0]
-	return m
+	var messages []*Message
+	messages = append(messages, buffer.new...)
+	messages = append(messages, buffer.pending...)
+
+	buffer.new = buffer.new[:0]
+	buffer.pending = buffer.pending[:0]
+	return messages
 }
 
 func (buffer *buffer) Back(messages []*Message) {
 	buffer.mu.Lock()
 	defer buffer.mu.Unlock()
 
-	buffer.buf = append(buffer.buf, messages...)
+	buffer.pending = append(buffer.pending, messages...)
 }
