@@ -1,6 +1,7 @@
 package fluent
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"strings"
@@ -19,8 +20,9 @@ var (
 type Config struct {
 	Address           string
 	ConnectionTimeout time.Duration
-	FlushInterval     time.Duration
 	FailureThreshold  int64
+	FlushInterval     time.Duration
+	PendingLimit      int
 }
 
 func withDefaultConfig(c Config) Config {
@@ -37,6 +39,8 @@ func withDefaultConfig(c Config) Config {
 }
 
 type Logger struct {
+	ErrorHandler ErrorHandler
+
 	conf    Config
 	conn    io.WriteCloser
 	buf     buffer
@@ -153,10 +157,17 @@ func (logger *Logger) send() error {
 	for _, m := range messages {
 		data = append(data, m.buf.Bytes()...)
 	}
-	err := logger.write(data)
+
+	err := logger.writeWithBreaker(data)
 	if err != nil {
-		logger.buf.Back(messages)
-		return err
+		if logger.ErrorHandler != nil && len(messages) > logger.conf.PendingLimit {
+			err = logger.ErrorHandler.HandleError(err, data)
+		}
+		if err != nil {
+			fmt.Println(err)
+			logger.buf.Back(messages)
+			return err
+		}
 	}
 
 	for _, m := range messages {
@@ -173,18 +184,12 @@ func (logger *Logger) start() {
 		for {
 			select {
 			case <-logger.done:
-				err := logger.send()
-				if err != nil {
-					panic(err)
-				}
+				logger.send()
 				return
 			case <-logger.buf.Dirty:
 			case <-ticker.C:
 			}
-			err := logger.send()
-			if err != nil {
-				panic(err)
-			}
+			logger.send()
 		}
 	}()
 }

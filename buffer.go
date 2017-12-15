@@ -38,11 +38,11 @@ func (buffer *buffer) Remove() []*Message {
 	}
 
 	var messages []*Message
-	messages = append(messages, buffer.new...)
 	messages = append(messages, buffer.pending...)
+	messages = append(messages, buffer.new...)
 
-	buffer.new = buffer.new[:0]
 	buffer.pending = buffer.pending[:0]
+	buffer.new = buffer.new[:0]
 	return messages
 }
 

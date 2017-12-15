@@ -140,6 +140,9 @@ func BenchmarkStructDaichirata(b *testing.B) {
 		panic(err)
 	}
 	defer logger.Close()
+	logger.ErrorHandler = daichirata.ErrorHandlerFunc(func(err error, _ []byte) error {
+		panic(err)
+	})
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -170,6 +173,9 @@ func BenchmarkMapDaichirata(b *testing.B) {
 		panic(err)
 	}
 	defer logger.Close()
+	logger.ErrorHandler = daichirata.ErrorHandlerFunc(func(err error, _ []byte) error {
+		panic(err)
+	})
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
