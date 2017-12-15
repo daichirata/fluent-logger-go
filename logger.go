@@ -39,6 +39,10 @@ func withDefaultConfig(c Config) Config {
 }
 
 type Logger struct {
+	// ErrorHandler handle error events. If Errorhandler is set, it is called
+	// with error and message which failed to send as arguments.
+	// If ErrorHandler does not return error, it means that the sending of the
+	// message was successful.
 	ErrorHandler ErrorHandler
 
 	conf    Config
@@ -50,6 +54,7 @@ type Logger struct {
 	done    chan struct{}
 }
 
+// NewLogger generates a new Logger instance.
 func NewLogger(c Config) (*Logger, error) {
 	conf := withDefaultConfig(c)
 	logger := &Logger{
@@ -65,10 +70,13 @@ func NewLogger(c Config) (*Logger, error) {
 	return logger, nil
 }
 
+// Post a message to fluentd. This method returns an error if encoding to msgpack fails.
+// Message posting processing is performed asynchronously by goroutine, so it will not block.
 func (logger *Logger) Post(tag string, obj interface{}) error {
 	return logger.PostWithTime(tag, time.Now(), obj)
 }
 
+// PostWithTime posts a message with specified time to fluentd.
 func (logger *Logger) PostWithTime(tag string, t time.Time, obj interface{}) error {
 	record := []interface{}{
 		tag,
@@ -84,10 +92,12 @@ func (logger *Logger) PostWithTime(tag string, t time.Time, obj interface{}) err
 	return nil
 }
 
+// Subscribe returns a channel of circuit.BreakerEvents.
 func (logger *Logger) Subscribe() <-chan circuit.BreakerEvent {
 	return logger.breaker.Subscribe()
 }
 
+// Close will block until all messages has been sent.
 func (logger *Logger) Close() error {
 	logger.stop()
 	return logger.disconnect()
