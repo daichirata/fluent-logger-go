@@ -1,7 +1,6 @@
 package fluent
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"strings"
@@ -174,7 +173,6 @@ func (logger *Logger) send() error {
 			err = logger.ErrorHandler.HandleError(err, data)
 		}
 		if err != nil {
-			fmt.Println(err)
 			logger.buf.Back(messages)
 			return err
 		}
