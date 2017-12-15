@@ -1,10 +1,16 @@
-hash: c9f917870bd69c68f3786fdf5016c489fd787be764fcf90800543bf9016d486b
-updated: 2017-12-15T12:26:00.25468326+09:00
+hash: e50c939d56a20ff1bb9f0b393cc57eb1dba022c559459952789acb58f2864af1
+updated: 2017-12-15T15:12:25.495621837+09:00
 imports:
+- name: github.com/cenk/backoff
+  version: 309aa717adbf351e92864cbedf9cca0b769a4b5a
+- name: github.com/facebookgo/clock
+  version: 600d898af40aa09a7a93ecb9265d87b0504b6f03
 - name: github.com/golang/protobuf
   version: 1e59b77b52bf8e4b449a57e6f79f21226d571845
   subpackages:
   - proto
+- name: github.com/rubyist/circuitbreaker
+  version: 2074adba5ddc7d5f7559448a9c3066573521c5bf
 - name: golang.org/x/net
   version: d866cfc389cec985d6fda2859936a575a55a3ab6
   subpackages:

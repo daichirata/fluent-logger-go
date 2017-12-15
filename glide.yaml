@@ -1,6 +1,7 @@
 package: github.com/daichirata/fluent-logger-go
 import:
 - package: gopkg.in/vmihailenco/msgpack.v2
+- package: github.com/rubyist/circuitbreaker
 testImport:
 - package: github.com/stretchr/testify
   subpackages:
