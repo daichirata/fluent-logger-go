@@ -111,10 +111,9 @@ func (logger *Logger) disconnect() error {
 	return err
 }
 
-const maxWriteAttempts = 3
+const maxWriteAttempts = 2
 
-func (logger *Logger) send() error {
-	messages := logger.buf.Remove()
+func (logger *Logger) write(messages []*Message) error {
 	if len(messages) == 0 {
 		return nil
 	}
@@ -122,25 +121,32 @@ func (logger *Logger) send() error {
 	for _, m := range messages {
 		data = append(data, m.buf.Bytes()...)
 	}
-
 	var err error
 	for i := 0; i < maxWriteAttempts; i++ {
 		err = logger.connect()
 		if err == nil {
 			_, err := logger.conn.Write(data)
 			if err == nil {
-				for _, m := range messages {
-					putMessage(m)
-				}
 				break
 			}
 		}
 		logger.disconnect()
 	}
+	return err
+}
+
+func (logger *Logger) send() error {
+	messages := logger.buf.Remove()
+
+	err := logger.write(messages)
 	if err != nil {
 		logger.buf.Back(messages)
+		return err
 	}
-	return err
+	for _, m := range messages {
+		putMessage(m)
+	}
+	return nil
 }
 
 func (logger *Logger) start() {
