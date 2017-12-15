@@ -6,8 +6,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"gopkg.in/vmihailenco/msgpack.v2"
 )
 
 var (
@@ -65,8 +63,7 @@ func (logger *Logger) PostWithTime(tag string, t time.Time, obj interface{}) err
 	}
 
 	m := getMessage()
-	enc := msgpack.NewEncoder(m.buf)
-	if err := enc.Encode(record); err != nil {
+	if err := m.enc.Encode(record); err != nil {
 		return err
 	}
 	logger.buf.Add(m)

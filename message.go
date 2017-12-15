@@ -3,10 +3,13 @@ package fluent
 import (
 	"bytes"
 	"sync"
+
+	"gopkg.in/vmihailenco/msgpack.v2"
 )
 
 type Message struct {
 	buf *bytes.Buffer
+	enc *msgpack.Encoder
 }
 
 var messagePool = sync.Pool{
@@ -26,7 +29,9 @@ func putMessage(message *Message) {
 }
 
 func newMessage() *Message {
+	buf := bytes.NewBuffer([]byte{})
 	return &Message{
-		buf: bytes.NewBuffer([]byte{}),
+		buf: buf,
+		enc: msgpack.NewEncoder(buf),
 	}
 }
