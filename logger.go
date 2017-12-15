@@ -34,22 +34,19 @@ func withDefaultConfig(c Config) Config {
 }
 
 type Logger struct {
-	conf  Config
-	conn  io.WriteCloser
-	bmu   sync.Mutex
-	cmu   sync.Mutex
-	buf   []byte
-	wg    sync.WaitGroup
-	done  chan struct{}
-	dirty chan struct{}
+	conf Config
+	conn io.WriteCloser
+	mu   sync.Mutex
+	buf  buffer
+	wg   sync.WaitGroup
+	done chan struct{}
 }
 
 func NewLogger(c Config) (*Logger, error) {
 	logger := &Logger{
-		conf:  withDefaultConfig(c),
-		buf:   []byte{},
-		done:  make(chan struct{}),
-		dirty: make(chan struct{}),
+		conf: withDefaultConfig(c),
+		buf:  newBuffer(),
+		done: make(chan struct{}),
 	}
 	if err := logger.connect(); err != nil {
 		return nil, err
@@ -74,15 +71,7 @@ func (logger *Logger) PostWithTime(tag string, t time.Time, obj interface{}) err
 	if err := enc.Encode(record); err != nil {
 		return err
 	}
-	raw := buf.Bytes()
-
-	logger.bmu.Lock()
-	logger.buf = append(logger.buf, raw...)
-	logger.bmu.Unlock()
-
-	go func() {
-		logger.dirty <- struct{}{}
-	}()
+	logger.buf.Add(buf.Bytes())
 	return nil
 }
 
@@ -92,8 +81,8 @@ func (logger *Logger) Close() error {
 }
 
 func (logger *Logger) connect() error {
-	logger.cmu.Lock()
-	defer logger.cmu.Unlock()
+	logger.mu.Lock()
+	defer logger.mu.Unlock()
 
 	if logger.conn != nil {
 		return nil
@@ -116,8 +105,8 @@ func (logger *Logger) connect() error {
 }
 
 func (logger *Logger) disconnect() error {
-	logger.cmu.Lock()
-	defer logger.cmu.Unlock()
+	logger.mu.Lock()
+	defer logger.mu.Unlock()
 
 	if logger.conn == nil {
 		return nil
@@ -130,26 +119,25 @@ func (logger *Logger) disconnect() error {
 const maxWriteAttempts = 3
 
 func (logger *Logger) send() error {
-	logger.bmu.Lock()
-	defer logger.bmu.Unlock()
-
-	data := logger.buf
+	data := logger.buf.Remove()
 	if len(data) == 0 {
 		return nil
 	}
+
 	var err error
 	for i := 0; i < maxWriteAttempts; i++ {
 		err = logger.connect()
 		if err == nil {
 			_, err := logger.conn.Write(data)
 			if err == nil {
-				logger.buf = logger.buf[:0]
 				break
 			}
 		}
 		logger.disconnect()
 	}
-
+	if err != nil {
+		logger.buf.Back(data)
+	}
 	return err
 }
 
@@ -163,7 +151,7 @@ func (logger *Logger) start() {
 			case <-logger.done:
 				logger.send()
 				return
-			case <-logger.dirty:
+			case <-logger.buf.Dirty:
 			case <-ticker.C:
 			}
 			logger.send()
