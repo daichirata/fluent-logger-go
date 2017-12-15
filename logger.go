@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"bytes"
-
 	"gopkg.in/vmihailenco/msgpack.v2"
 )
 
@@ -66,12 +64,12 @@ func (logger *Logger) PostWithTime(tag string, t time.Time, obj interface{}) err
 		obj,
 	}
 
-	buf := bytes.NewBuffer([]byte{})
-	enc := msgpack.NewEncoder(buf)
+	m := getMessage()
+	enc := msgpack.NewEncoder(m.buf)
 	if err := enc.Encode(record); err != nil {
 		return err
 	}
-	logger.buf.Add(buf.Bytes())
+	logger.buf.Add(m)
 	return nil
 }
 
@@ -119,9 +117,13 @@ func (logger *Logger) disconnect() error {
 const maxWriteAttempts = 3
 
 func (logger *Logger) send() error {
-	data := logger.buf.Remove()
-	if len(data) == 0 {
+	messages := logger.buf.Remove()
+	if len(messages) == 0 {
 		return nil
+	}
+	var data []byte
+	for _, m := range messages {
+		data = append(data, m.buf.Bytes()...)
 	}
 
 	var err error
@@ -130,13 +132,16 @@ func (logger *Logger) send() error {
 		if err == nil {
 			_, err := logger.conn.Write(data)
 			if err == nil {
+				for _, m := range messages {
+					putMessage(m)
+				}
 				break
 			}
 		}
 		logger.disconnect()
 	}
 	if err != nil {
-		logger.buf.Back(data)
+		logger.buf.Back(messages)
 	}
 	return err
 }
@@ -149,12 +154,18 @@ func (logger *Logger) start() {
 		for {
 			select {
 			case <-logger.done:
-				logger.send()
+				err := logger.send()
+				if err != nil {
+					panic(err)
+				}
 				return
 			case <-logger.buf.Dirty:
 			case <-ticker.C:
 			}
-			logger.send()
+			err := logger.send()
+			if err != nil {
+				panic(err)
+			}
 		}
 	}()
 }

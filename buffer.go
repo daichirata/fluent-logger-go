@@ -5,29 +5,28 @@ import (
 )
 
 type buffer struct {
-	buf   []byte
+	buf   []*Message
 	mu    sync.Mutex
 	Dirty chan struct{}
 }
 
 func newBuffer() buffer {
 	return buffer{
-		buf:   []byte{},
 		Dirty: make(chan struct{}),
 	}
 }
 
-func (buffer *buffer) Add(raw []byte) {
+func (buffer *buffer) Add(message *Message) {
 	buffer.mu.Lock()
 	defer buffer.mu.Unlock()
 
-	buffer.buf = append(buffer.buf, raw...)
+	buffer.buf = append(buffer.buf, message)
 	go func() {
 		buffer.Dirty <- struct{}{}
 	}()
 }
 
-func (buffer *buffer) Remove() []byte {
+func (buffer *buffer) Remove() []*Message {
 	buffer.mu.Lock()
 	defer buffer.mu.Unlock()
 
@@ -35,14 +34,14 @@ func (buffer *buffer) Remove() []byte {
 		return nil
 	}
 
-	data := buffer.buf
+	m := buffer.buf
 	buffer.buf = buffer.buf[:0]
-	return data
+	return m
 }
 
-func (buffer *buffer) Back(raw []byte) {
+func (buffer *buffer) Back(messages []*Message) {
 	buffer.mu.Lock()
 	defer buffer.mu.Unlock()
 
-	buffer.buf = append(buffer.buf, raw...)
+	buffer.buf = append(buffer.buf, messages...)
 }
